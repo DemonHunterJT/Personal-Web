@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design — Jasmine Tse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  /* ——— 1. 作品网格更靠近页头 ——— */
+  .page-inner > header {
+    margin-bottom: 1rem;
+  }
+  .page-inner > header .page-lede {
+    margin-bottom: 0;
+  }
+  .page-inner > .work-grid {
+    margin-top: 0;
+  }
+
+  /* ——— 2. 卡片整块可点击 ——— */
+  .card-link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+  }
+  .card-link:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+  }
+
+  /* ——— 3. 缩略图统一 3:4 裁切（图片与色块都适用）——— */
+  .work-grid .card .card-thumb {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+    background: linear-gradient(135deg, var(--a, #ddd), var(--b, #999));
+    transition: transform .4s ease, filter .4s ease;
+  }
+
+  .card-link:hover .card-thumb {
+    transform: translateY(-3px);
+    filter: brightness(1.03);
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="index.html">Jasmine Tse</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="publications.html">Publications</a>
+    <a href="design.html" class="active" aria-current="page">Design</a>
+    <a href="modeling.html">3D Modeling</a>
+    <a href="photography.html">Photography</a>
+  </div>
+</nav>
+
+<main class="page">
+  <div class="page-head">
+    <a class="back" href="index.html"><span aria-hidden="true">←</span> Back to turntable</a>
+    <span class="page-num">02 / 04</span>
+  </div>
+
+  <div class="page-inner">
+    <header>
+      <h1 class="page-title">Design</h1>
+      <p class="page-lede">
+        Websites and digital environments — built slowly, with attention to
+        type, rhythm and restraint.
+      </p>
+    </header>
+
+    <div class="work-grid">
+      <figure class="card">
+        <a class="card-link"
+           href="files/food_companion_portfolio.pdf"
+           target="_blank"
+           rel="noopener noreferrer">
+          <img class="card-thumb"
+               src="files/food_companion_cover.png"
+               alt="Food Companion product design portfolio preview"
+               loading="lazy">
+          <figcaption>
+            <span class="card-title">Food Companion</span>
+            <span class="card-meta">App design portfolio · 2025</span>
+          </figcaption>
+        </a>
+      </figure>
+      <figure class="card">
+        <div class="card-thumb" style="--a:#d9d3c7;--b:#a79f8f"></div>
+        <figcaption>
+          <span class="card-title">To be continued</span>
+          <span class="card-meta">To be continued</span>
+        </figcaption>
+      </figure>
+      
+    </div>
+  </div>
+</main>
+
+</body>
+</html>
