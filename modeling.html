@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Modeling — Jasmine Tse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+/* ============================================
+   3D MODELING — COLLAGE
+   ============================================ */
+
+/* ============================================
+   COLLAGE STAGE — 两行六列
+   ============================================ */
+.collage {
+  position: relative;
+  width: 100%;
+  max-width: 1080px;
+  margin: clamp(50px, 8vh, 86px) auto 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: clamp(56px, 7vw, 76px) clamp(10px, 1.4vw, 16px);
+  align-items: start;
+}
+
+/* ============================================
+   BACKGROUND WAVE LINES
+   ============================================ */
+.wave-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.wave-line {
+  fill: none;
+  stroke: rgba(152, 130, 92, 0.42);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ============================================
+   TILE — 不规则错落 + 旋转
+   ============================================ */
+.tile {
+  position: relative;
+  margin: 0;
+  transform: rotate(var(--r, 0deg)) translateY(var(--dy, 0px));
+  transform-origin: var(--ox, 50%) var(--oy, 50%);
+  transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.3, 1);
+  z-index: 1;
+}
+
+.tile:hover {
+  transform: rotate(var(--r, 0deg)) translateY(var(--dy, 0px)) scale(1.06);
+  z-index: 40;
+}
+
+/* ============================================
+   FLIP CARD
+   ============================================ */
+.art-card {
+  position: relative;
+  width: 100%;
+  perspective: 1000px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.card-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.8s cubic-bezier(0.3, 0.9, 0.4, 1);
+}
+
+.art-card.is-flipped .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  box-sizing: border-box;
+  padding: 6px;
+  background: #fffdf6;
+  border: 1px solid rgba(180, 158, 112, 0.32);
+  border-radius: 2px;
+  box-shadow: var(--shadow, 0 5px 12px rgba(92, 74, 42, 0.10));
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.card-face img {
+  display: block;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+.card-front {
+  position: relative;
+  display: block;
+}
+
+.card-front img {
+  width: 100%;
+  height: auto;
+}
+
+.card-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  background: #f2eee3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-back img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.back-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sans);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #a9a294;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1000px) {
+  .collage {
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(50px, 6vw, 70px) clamp(12px, 1.8vw, 18px);
+  }
+}
+
+@media (max-width: 720px) {
+  .collage {
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(44px, 6vw, 60px) clamp(12px, 2.4vw, 18px);
+  }
+  .tile {
+    transform: rotate(calc(var(--r, 0deg) * 0.6)) translateY(calc(var(--dy, 0px) * 0.7));
+  }
+  .tile:hover {
+    transform: rotate(calc(var(--r, 0deg) * 0.6)) translateY(calc(var(--dy, 0px) * 0.7)) scale(1.03);
+  }
+}
+
+@media (max-width: 520px) {
+  .collage {
+    grid-template-columns: repeat(2, 1fr);
+    gap: clamp(36px, 8vw, 50px) clamp(12px, 3vw, 18px);
+  }
+  .tile {
+    transform: rotate(calc(var(--r, 0deg) * 0.5)) translateY(calc(var(--dy, 0px) * 0.6));
+  }
+  .tile:hover {
+    transform: rotate(calc(var(--r, 0deg) * 0.5)) translateY(calc(var(--dy, 0px) * 0.6)) scale(1.02);
+  }
+}
+
+/* ============================================
+   LIGHTBOX
+   ============================================ */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: clamp(20px, 5vw, 64px);
+  box-sizing: border-box;
+  background: rgba(32, 30, 26, 0.9);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  cursor: zoom-out;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.32s ease, visibility 0.32s ease;
+}
+
+.lightbox.is-open { opacity: 1; visibility: visible; }
+
+.lightbox-figure {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.lightbox img {
+  display: block;
+  max-width: min(92vw, 1400px);
+  max-height: 82vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 2px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  transform: scale(0.94);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.25, 1), opacity 0.3s ease;
+}
+
+.lightbox.is-open img { transform: scale(1); opacity: 1; }
+
+.lightbox-caption {
+  font-family: var(--sans);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(245, 242, 235, 0.6);
+  text-align: center;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: clamp(14px, 3vw, 28px);
+  right: clamp(14px, 3vw, 28px);
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(245, 242, 235, 0.28);
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(245, 242, 235, 0.85);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.25s ease, border-color 0.25s ease;
+}
+
+.lightbox-close:hover {
+  background: rgba(245, 242, 235, 0.12);
+  border-color: rgba(245, 242, 235, 0.55);
+}
+
+@media (max-width: 600px) {
+  .lightbox img { max-width: 94vw; max-height: 74vh; }
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a class="nav-brand" href="index.html">Jasmine Tse</a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="about.html">About</a>
+    <a href="publications.html">Publications</a>
+    <a href="design.html">Design</a>
+    <a href="modeling.html" class="active" aria-current="page">3D Modeling</a>
+    <a href="photography.html">Photography</a>
+  </div>
+</nav>
+
+<main class="page">
+  <div class="page-head">
+    <a class="back" href="index.html"><span aria-hidden="true">←</span> Back to turntable</a>
+    <span class="page-num">03 / 04</span>
+  </div>
+
+  <div class="page-inner">
+    <header>
+      <h1 class="page-title">3D Modeling</h1>
+      <p class="page-lede">
+        A collection of spatial experiments and digital artifacts of 3D modeling.
+        Single-click any piece to flip it over and reveal the clay render behind, double-click to view it full size.
+      </p>
+    </header>
+
+    <div class="collage">
+
+      <!-- 背景波浪线 -->
+      <svg class="wave-lines" id="waveLines" aria-hidden="true" focusable="false">
+        <path class="wave-line" id="waveTop" d=""></path>
+        <path class="wave-line" id="waveBottom" d=""></path>
+      </svg>
+
+      <!-- 第 1 行：01–06 -->
+      <figure class="tile" style="--r:-2.2deg; --dy:-16px; --ox:30%; --oy:20%;
+                                    --shadow:0 8px 18px rgba(92,74,42,0.14);">
+        <div class="art-card">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img src="images/modeling/01.png" alt="Modeling 01">
+            </div>
+            <div class="card-face card-back">
+              <span class="back-label">Wireframe</span>
+              <img src="images/modeling/01b.png" alt="Modeling 01 wireframe" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="tile" style="--r:1.8deg; --dy:12px; --ox:70%; --oy:40%;
+                                    --shadow:0 4px 10px rgba(92,74,42,0.09);">
+        <div class="art-card">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img src="images/modeling/02.png" alt="Modeling 02">
+            </div>
+            <div class="card-face card-back">
+              <span class="back-label">Wireframe</span>
+              <img src="images/modeling/02b.png" alt="Modeling 02 wireframe" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="tile" style="--r:-1.4deg; --dy:-22px; --ox:50%; --oy:30%;
+                                    --shadow:0 6px 14px rgba(92,74,42,0.12);">
+        <div class="art-card">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img src="images/modeling/03.png" alt="Modeling 03">
+            </div>
+            <div class="card-face card-back">
+              <span class="back-label">Clay</span>
+              <img src="images/modeling/03b.png" alt="Modeling 03 clay render" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="tile" style="--r:2.4deg; --dy:16px; --ox:50%; --oy:60%;
+                                    --shadow:0 7px 16px rgba(92,74,42,0.13);">
+        <div class="art-card">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img src="images/modeling/04.png" alt="Modeling 04">
+            </div>
+            <div class="card-face card-back">
+              <span class="back-label">Wireframe</span>
+              <img src="images/modeling/04b.png" alt="Modeling 04 wireframe" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="tile" style="--r:-2deg; --dy:-30px; --ox:40%; --oy:60%;
+                                    --shadow:0 4px 10px rgba(92,74,42,0.09);">
+        <div class="art-card">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img src="images/modeling/05.png" alt="Modeling 05">
+            </div>
+            <div class="card-face card-back">
+              <span class="back-label">Clay</span>
+              <img src="images/modeling/05b.png" alt="Modeling 05 clay render" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="tile" style="--r:1.6deg; --dy:10px; --ox:60%; --oy:20%;
+                                    --shadow:0 8px 18px rgba(92,74,42,0.14);">
+        <div class="art-card">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img src="images/modeling/06.png" alt="Modeling 06">
+            </div>
+            <div class="card-face card-back">
+              <span class="back-label">Wireframe</span>
+              <img src="images/modeling/06b.png" alt="Modeling 06 wireframe" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <!-- 第 2 行：07–12 -->
+      <figure class="tile" style="--r:2.2deg; --dy:-18px; --ox:40%; --oy:50%;
+                                    --shadow:0 5px 12px rgba(92,74,42,0.10);">
+        <div class="art-card">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img src="images/modeling/07.png" alt="Modeling 07">
+            </div>
+            <div class="card-face card-back">
+              <span class="back-label">Clay</span>
+              <img src="images/modeling/07b.png" alt="Modeling 07 clay render" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="tile" style="--r:-2deg; --dy:14px; --ox:60%; --oy:30%;
+                                    --shadow:0 6px 14px rgba(92,74,42,0.12);">
+        <div class="art-card">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img src="images/modeling/08.png" alt="Modeling 08">
+            </div>
+            <div class="card-face card-back">
+              <span class="back-label">Wireframe</span>
+              <img src="images/modeling/08b.png" alt="Modeling 08 wireframe" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="tile" style="--r:1.6deg; --dy:-12px; --ox:30%; --oy:20%;
+                                    --shadow:0 7px 16px rgba(92,74,42,0.13);">
+        <div class="art-card">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img src="images/modeling/09.png" alt="Modeling 09">
+            </div>
+            <div class="card-face card-back">
+              <span class="back-label">Clay</span>
+              <img src="images/modeling/09b.png" alt="Modeling 09 clay render" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="tile" style="--r:-2.4deg; --dy:18px; --ox:70%; --oy:50%;
+                                    --shadow:0 4px 10px rgba(92,74,42,0.09);">
+        <div class="art-card">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img src="images/modeling/10.png" alt="Modeling 10">
+            </div>
+            <div class="card-face card-back">
+              <span class="back-label">Wireframe</span>
+              <img src="images/modeling/10b.png" alt="Modeling 10 wireframe" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="tile" style="--r:2deg; --dy:-20px; --ox:40%; --oy:30%;
+                                    --shadow:0 8px 18px rgba(92,74,42,0.14);">
+        <div class="art-card">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img src="images/modeling/11.png" alt="Modeling 11">
+            </div>
+            <div class="card-face card-back">
+              <span class="back-label">Clay</span>
+              <img src="images/modeling/11b.png" alt="Modeling 11 clay render" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+      </figure>
+
+      <figure class="tile" style="--r:-1.6deg; --dy:10px; --ox:60%; --oy:60%;
+                                    --shadow:0 7px 16px rgba(92,74,42,0.13);">
+        <div class="art-card">
+          <div class="card-inner">
+            <div class="card-face card-front">
+              <img src="images/modeling/12.png" alt="Modeling 12">
+            </div>
+            <div class="card-face card-back">
+              <span class="back-label">Wireframe</span>
+              <img src="images/modeling/12b.png" alt="Modeling 12 wireframe" onerror="this.style.display='none'">
+            </div>
+          </div>
+        </div>
+      </figure>
+
+    </div>
+  </div>
+</main>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Enlarged artwork">
+  <button class="lightbox-close" type="button" aria-label="Close">&times;</button>
+  <figure class="lightbox-figure">
+    <img id="lightbox-img" src="" alt="">
+  </figure>
+  <div class="lightbox-caption" id="lightbox-caption"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============================================================
+     FLIP CARD + LIGHTBOX
+     ============================================================ */
+  var lightbox    = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightbox-img');
+  var lightboxCap = document.getElementById('lightbox-caption');
+
+  var FLIP_DELAY = 230;
+  var flipTimer  = null;
+
+  function isUsable(img) {
+    return !!img &&
+           img.style.display !== 'none' &&
+           img.complete &&
+           img.naturalWidth > 0;
+  }
+
+  function pickImage(card) {
+    var flipped  = card.classList.contains('is-flipped');
+    var front    = card.querySelector('.card-front img');
+    var back     = card.querySelector('.card-back img');
+    var primary  = flipped ? back : front;
+    var fallback = flipped ? front : back;
+
+    if (isUsable(primary))  return primary;
+    if (isUsable(fallback)) return fallback;
+    return null;
+  }
+
+  function openLightbox(img) {
+    lightboxImg.src = img.currentSrc || img.src;
+    lightboxImg.alt = img.alt || '';
+    lightboxCap.textContent = img.alt || '';
+    lightbox.classList.add('is-open');
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('is-open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  document.querySelectorAll('.art-card').forEach(function (card) {
+
+    card.addEventListener('click', function () {
+      if (flipTimer) {
+        clearTimeout(flipTimer);
+        flipTimer = null;
+        return;
+      }
+      flipTimer = setTimeout(function () {
+        flipTimer = null;
+        card.classList.toggle('is-flipped');
+      }, FLIP_DELAY);
+    });
+
+    card.addEventListener('dblclick', function (e) {
+      e.preventDefault();
+      if (flipTimer) {
+        clearTimeout(flipTimer);
+        flipTimer = null;
+      }
+      var img = pickImage(card);
+      if (img) openLightbox(img);
+    });
+  });
+
+  lightbox.addEventListener('click', closeLightbox);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' || e.key === 'Esc') {
+      if (lightbox.classList.contains('is-open')) closeLightbox();
+    }
+  });
+
+  lightboxImg.addEventListener('error', function () {
+    lightboxCap.textContent = 'Image unavailable';
+  });
+
+  /* ============================================================
+     BACKGROUND WAVE LINES
+     —— 每行一条：只把卡片中点作为“必经点”，
+        中点之间的起伏由随机控制点产生，
+        因此中点不一定是峰/谷，波峰波谷数量也不规则。
+        两端从视口边缘自然延伸进来。
+     ============================================================ */
+  var collageEl = document.querySelector('.collage');
+  var waveSvg   = document.getElementById('waveLines');
+  var wavePaths = [
+    document.getElementById('waveTop'),
+    document.getElementById('waveBottom')
+  ];
+  var waveRaf = null;
+
+  function fmt(n) {
+    return Math.round(n * 10) / 10;
+  }
+
+  /* Catmull-Rom → 三次贝塞尔：平滑穿过所有控制点 */
+  function catmullRomToBezier(points) {
+    if (!points || points.length < 2) return '';
+    var d = 'M ' + fmt(points[0].x) + ' ' + fmt(points[0].y);
+    for (var i = 0; i < points.length - 1; i++) {
+      var p0 = points[i - 1] || points[i];
+      var p1 = points[i];
+      var p2 = points[i + 1];
+      var p3 = points[i + 2] || points[i + 1];
+
+      var c1x = p1.x + (p2.x - p0.x) / 6;
+      var c1y = p1.y + (p2.y - p0.y) / 6;
+      var c2x = p2.x - (p3.x - p1.x) / 6;
+      var c2y = p2.y - (p3.y - p1.y) / 6;
+
+      d += ' C ' + fmt(c1x) + ' ' + fmt(c1y) +
+           ', ' + fmt(c2x) + ' ' + fmt(c2y) +
+           ', ' + fmt(p2.x) + ' ' + fmt(p2.y);
+    }
+    return d;
+  }
+
+  /* 稳定伪随机（同一个 seed 永远得到同一个 0..1 的值） */
+  function rnd(seed) {
+    var x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+    return x - Math.floor(x);
+  }
+
+  function buildWavePath(pts, rowIndex, W, extendLeft, extendRight) {
+    if (!pts || pts.length < 2) return '';
+
+    var aug  = [];
+    var first = pts[0];
+    var last  = pts[pts.length - 1];
+    var baseSeed = rowIndex * 1000 + 7;
+
+    /* ---------- 左端：从页面左边缘自然延伸 ---------- */
+    var leftEndX = -extendLeft;
+    var leftEndY = first.y + (rnd(baseSeed + 1) - 0.5) * 56;
+
+    if (extendLeft > 50) {
+      var leftMidX = (leftEndX + first.x) / 2;
+      var leftMidY = (leftEndY + first.y) / 2 + (rnd(baseSeed + 2) - 0.5) * 80;
+      aug.push({ x: leftEndX, y: leftEndY });
+      aug.push({ x: leftMidX, y: leftMidY });
+    } else {
+      aug.push({ x: leftEndX, y: leftEndY });
+    }
+    aug.push({ x: first.x, y: first.y });
+
+    /* ---------- 中点之间：随机 1～2 个起伏点 ---------- */
+    for (var i = 0; i < pts.length - 1; i++) {
+      var a = pts[i];
+      var b = pts[i + 1];
+      var dx = b.x - a.x;
+      var baseY = (a.y + b.y) / 2;
+
+      var s0 = baseSeed + 100 + i * 13;
+      var twoWaves = rnd(s0) > 0.4;
+
+      if (twoWaves) {
+        var t1 = 0.22 + rnd(s0 + 1) * 0.18;
+        var t2 = 0.58 + rnd(s0 + 2) * 0.18;
+        var amp1 = 14 + rnd(s0 + 3) * 26;
+        var amp2 = 14 + rnd(s0 + 4) * 26;
+        var sign1 = rnd(s0 + 5) > 0.5 ? 1 : -1;
+        var sign2 = rnd(s0 + 6) > 0.5 ? 1 : -1;
+
+        aug.push({ x: a.x + dx * t1, y: baseY + sign1 * amp1 });
+        aug.push({ x: a.x + dx * t2, y: baseY + sign2 * amp2 });
+      } else {
+        var t   = 0.4 + rnd(s0 + 7) * 0.2;
+        var amp = 16 + rnd(s0 + 8) * 30;
+        var sgn = rnd(s0 + 9) > 0.5 ? 1 : -1;
+        aug.push({ x: a.x + dx * t, y: baseY + sgn * amp });
+      }
+
+      aug.push({ x: b.x, y: b.y });
+    }
+
+    /* ---------- 右端：延伸到页面右边缘 ---------- */
+    var rightEndX = W + extendRight;
+    var rightEndY = last.y + (rnd(baseSeed + 500) - 0.5) * 56;
+
+    if (extendRight > 50) {
+      var rightMidX = (last.x + rightEndX) / 2;
+      var rightMidY = (last.y + rightEndY) / 2 + (rnd(baseSeed + 501) - 0.5) * 80;
+      aug.push({ x: rightMidX, y: rightMidY });
+      aug.push({ x: rightEndX, y: rightEndY });
+    } else {
+      aug.push({ x: rightEndX, y: rightEndY });
+    }
+
+    return catmullRomToBezier(aug);
+  }
+
+  function drawWaves() {
+    if (!collageEl || !waveSvg) return;
+
+    var cRect = collageEl.getBoundingClientRect();
+    var W = cRect.width;
+    var H = cRect.height;
+    if (!W || !H) return;
+
+    waveSvg.setAttribute('viewBox', '0 0 ' + fmt(W) + ' ' + fmt(H));
+
+    /* 视口左右两侧的延伸量：让线一直铺到页面边缘 */
+    var vw = window.innerWidth;
+    var extendLeft  = Math.max(cRect.left, 0) + 30;
+    var extendRight = Math.max(vw - cRect.right, 0) + 30;
+
+    var tiles = Array.prototype.slice.call(collageEl.querySelectorAll('.tile'));
+
+    /* 依据 offsetTop 自动分行（适配不同断点的列数） */
+    var rows = [];
+    tiles.forEach(function (tile) {
+      var top = tile.offsetTop;
+      for (var i = 0; i < rows.length; i++) {
+        if (Math.abs(rows[i].top - top) < 8) {
+          rows[i].tiles.push(tile);
+          return;
+        }
+      }
+      rows.push({ top: top, tiles: [tile] });
+    });
+
+    rows.sort(function (a, b) { return a.top - b.top; });
+    rows.forEach(function (row) {
+      row.tiles.sort(function (a, b) {
+        return a.getBoundingClientRect().left - b.getBoundingClientRect().left;
+      });
+    });
+
+    for (var r = 0; r < wavePaths.length; r++) {
+      var path = wavePaths[r];
+      var row  = rows[r];
+
+      if (!row || row.tiles.length < 2) {
+        path.setAttribute('d', '');
+        continue;
+      }
+
+      var pts = row.tiles.map(function (tile) {
+        var box = tile.getBoundingClientRect();
+        return {
+          x: box.left + box.width  / 2 - cRect.left,
+          y: box.top  + box.height / 2 - cRect.top
+        };
+      });
+
+      path.setAttribute('d', buildWavePath(pts, r, W, extendLeft, extendRight));
+    }
+  }
+
+  function scheduleWaves() {
+    if (waveRaf) cancelAnimationFrame(waveRaf);
+    waveRaf = requestAnimationFrame(function () {
+      waveRaf = null;
+      drawWaves();
+    });
+  }
+
+  window.addEventListener('load', scheduleWaves);
+  window.addEventListener('resize', scheduleWaves);
+
+  document.querySelectorAll('.collage img').forEach(function (img) {
+    if (!img.complete) img.addEventListener('load', scheduleWaves);
+  });
+
+  if (window.ResizeObserver && collageEl) {
+    new ResizeObserver(scheduleWaves).observe(collageEl);
+  }
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(scheduleWaves);
+  }
+
+  scheduleWaves();
+})();
+</script>
+
+</body>
+</html>
